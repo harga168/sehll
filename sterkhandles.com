@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="utf-8">
+<meta name="google-site-verification" content="4uorKjeYO1pLirOq0JRJ-xiPyrhbyPbZJYDFnDbuR6Y" />
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>HARGATOTO : Salah Satu Bandar Toto Macau No 1 Di Indonesia Minimal Bet 100 Perak</title>
     <meta name="description"content="HARGATOTO adalah salah satu situs Bandar Toto Macau terpercaya dan terbesar di Indonesia. Situs ini menawarkan pengalaman bermain togel online yang aman dan menyenangkan dengan minimal taruhan hanya 100 perak. Didukung oleh lisensi resmi dan diawasi secara ketat oleh badan pengawas perjudian terkemuka, HARGATOTO menjamin integritas dan fairness dalam setiap permainan togel yang disediakan." />
