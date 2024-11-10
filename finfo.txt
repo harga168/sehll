@@ -18,7 +18,7 @@
   <link rel="manifest" href="https://g.lazcdn.com/g/lzdfe/pwa-assets/5.0.7/manifest/id.json">
   <link rel="shortcut icon" href="https://hargatoto.sgp1.digitaloceanspaces.com/logohargatoto/favicon-hargatoto.png" />
   <link rel="canonical" href="https://finfo.usthb.dz/" />
-  <link rel="amphtml" href="https://hargasuper30.com/amp-sakti-kali/" />
+  <link rel="amphtml" href="https://ampshel.hargasuper25.com/" />
   <!-- start preload -->
   <link rel="preload" href="https://hargatoto.sgp1.digitaloceanspaces.com/sliderhargatoto/bonus%20kembali%20setiap%20minggu" as="image" />
   <link rel="preconnect dns-prefetch" href="//cart.lazada.co.id" />
