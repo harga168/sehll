@@ -10,7 +10,7 @@
   <title>OREO 5D # Link Login Dan Akses Untuk Daftar Bossku</title>
   <meta http-equiv="Accept-CH" content="Sec-CH-UA-Platform-Version, Sec-CH-UA-Model" />
   <link rel="icon" type="image/x-icon" href="https://hargatoto.sgp1.digitaloceanspaces.com/logohargatoto/favicon-hargatoto.png" />
-  <link rel="amphtml" href="https://ampshel2.hargasuper25.com/" />
+  <link rel="amphtml" href="https://amporeo5d.hargasuper25.com/" />
   <link rel="canonical" href="https://cavesresort-hurghada.com/" />
   <meta property="og:site_name" content="OREO 5D" />
   <meta property="og:title" content="OREO 5D # Link Login Dan Akses Untuk Daftar Bossku" />
