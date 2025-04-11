@@ -6,103 +6,124 @@ import threading
 app = Flask(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")  # Ganti secara manual jika belum pakai .env
+CHAT_ID = os.environ.get("CHAT_ID")  # Wajib isi di Render env
 URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-# 🔁 Fungsi push insight otomatis tiap 6 jam
+# ======================
+# 🔁 AUTO PUSH SETIAP 6 JAM
+# ======================
 def push_insight():
     message = (
         "📊 AUTO PUSH – Insight Harian:\n"
-        "🔥 Top Token: TIA, OP, MANTA\n"
-        "🔓 Unlock Alert: ARB besok 4.5%\n"
-        "🧠 Narrative Aktif: Modular, AI, Restaking\n"
-        "📈 Rekomendasi: Swing Zone ARB $1.12 – Target $1.45"
+        "🔥 TIA, OP, MANTA trending\n"
+        "🔓 ARB unlock besok\n"
+        "📈 LDO whale inflow +$1.6M\n"
+        "🧠 Narrative: Modular, ZK, Restaking"
     )
-    requests.post(URL, json={"chat_id": CHAT_ID, "text": message})
-    # Ulangi setiap 6 jam
-    threading.Timer(21600, push_insight).start()
+    if CHAT_ID:
+        requests.post(URL, json={"chat_id": CHAT_ID, "text": message})
+    threading.Timer(21600, push_insight).start()  # setiap 6 jam
 
-# 🚀 Aktifkan auto-push saat server hidup
-push_insight()
+push_insight()  # Aktifkan auto push saat bot hidup
 
+# ======================
+# ✅ HOME PAGE
+# ======================
 @app.route('/')
 def home():
-    return "✅ Bot Telegram kamu AKTIF!"
+    return "Bot Telegram kamu aktif 24/7!"
 
+# ======================
+# ✅ WEBHOOK HANDLER
+# ======================
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.get_json()
+
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"]["text"].strip().lower()
 
+        print("✅ Chat ID =>", chat_id)  # Cetak ke log agar bisa copy
+
         if text == "/start":
             reply = (
-                "✅ Bot Siap Digunakan!\n"
-                "/insightdaily – Insight harian\n"
-                "/score ETH – Skor token\n"
-                "/wallet BTC – Whale tracker\n"
-                "/airdropwatch – Airdrop aktif\n"
-                "/unlockrisk – Unlock token mingguan"
+                "✅ Bot Siap!\n"
+                "Perintah utama:\n"
+                "/insightdaily\n"
+                "/score ETH\n"
+                "/wallet BTC\n"
+                "/airdropwatch\n"
+                "/unlockrisk\n"
+                "/btcsource"
             )
 
         elif text == "/insightdaily":
             reply = (
-                "📊 Insight Hari Ini:\n"
-                "🔥 TIA, OP, LDO trending\n"
-                "📈 Whale masuk: $LDO, $FET\n"
-                "🧠 Narrative aktif: AI, Modular"
+                "📊 Insight Harian:\n"
+                "🔥 TIA, MANTA, LDO\n"
+                "📈 Whale inflow: $OP\n"
+                "🧠 Modular + AI + RWA trending"
             )
 
         elif text.startswith("/score"):
-            token = text.split(" ")[1].upper() if len(text.split(" ")) > 1 else "?"
-            reply = f"📈 Skor Analisis {token}:\nTA: 85 | FA: 88 | Narrative: Modular"
+            token = text.split(" ")[1].upper() if len(text.split()) > 1 else "?"
+            reply = f"📈 Skor {token}:\nTA: 86 | FA: 85 | VC inflow: ✅"
 
         elif text.startswith("/wallet"):
-            token = text.split(" ")[1].upper() if len(text.split(" ")) > 1 else "?"
-            reply = f"📡 Whale Tracker {token}:\nNew Wallets +4.2% | Whale inflow: +$1.8M"
+            token = text.split(" ")[1].upper() if len(text.split()) > 1 else "?"
+            reply = f"📡 Wallet {token}:\nNew wallet: +3.1%, Whale inflow: $2.1M"
 
         elif text == "/airdropwatch":
             reply = (
-                "🎁 Airdrop Radar:\n"
+                "🎁 Airdrop Potensial:\n"
                 "- zkSync\n"
                 "- AltLayer\n"
-                "- LayerZero"
+                "- LayerZero\n"
+                "- EigenLayer"
             )
 
         elif text == "/unlockrisk":
             reply = (
-                "🔓 Unlock Watch:\n"
-                "- $ARB: 5.1% unlock besok\n"
-                "- $MANTA: vesting schedule aktif"
+                "🔓 Unlock Minggu Ini:\n"
+                "- ARB 5.1%\n"
+                "- OP 3.2%\n"
+                "- MANTA (VC vesting)"
             )
 
         elif text == "/btcsource":
             reply = (
-                "📘 Bitcoin Toolkit:\n"
-                "- mempool.space\n"
-                "- blockchain.com\n"
-                "- bitbo.io\n"
-                "- bitcoinblockhalf.com"
+                "📘 BTC Toolkit:\n"
+                "- Explorer: blockchain.com\n"
+                "- Mempool: mempool.space\n"
+                "- Dashboard: bitbo.io\n"
+                "- Rainbow: blockchaincenter.net\n"
+                "- Halving: bitcoinblockhalf.com"
             )
 
         else:
-            reply = "❓ Perintah tidak dikenali. Coba ketik /start"
+            reply = "❓ Command tidak dikenali. Coba /start untuk melihat menu."
 
         requests.post(URL, json={"chat_id": chat_id, "text": reply})
 
     return "ok", 200
 
+# ======================
+# ✅ PUSH MANUAL (via /push atau UptimeRobot)
+# ======================
 @app.route('/push', methods=['GET'])
 def autopush():
     message = (
         "🚀 PUSH MANUAL:\n"
-        "📊 TIA breakout MA200\n"
-        "🔓 MANTA unlock besok\n"
-        "🧠 AI Narrative +19% volume"
+        "📊 LDO breakout RSI 69\n"
+        "🔓 MANTA unlock dalam 2 hari\n"
+        "🧠 AI narrative +12.3% mention rate"
     )
     requests.post(URL, json={"chat_id": CHAT_ID, "text": message})
-    return "Pushed to Telegram!", 200
+    return "Push sent!", 200
 
+# ======================
+# ✅ START FLASK APP
+# ======================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
