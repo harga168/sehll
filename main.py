@@ -41,22 +41,25 @@ def webhook():
             )
 
         elif text.startswith("/score"):
-            token = text.split(" ")[1].upper() if len(text.split(" ")) > 1 else "?"
-            reply = (
-                f"📈 Skor Analisis untuk {token}:\n"
-                "- TA: 87 | FA: 82 | VC Score: 90\n"
-                "- Narrative: ZK Rollup, AppChain\n"
-                "- Rekomendasi: ✅ Swing Zone + DCA"
+    token = text.split(" ")[1].upper() if len(text.split(" ")) > 1 else "?"
+    reply = (
+        f"📈 Skor Analisis untuk {token}:\n"
+        "- TA: 87 | FA: 82 | VC Score: 90\n"
+        "- Narrative: ZK Rollup, AppChain\n"
+        "- Rekomendasi: ✅ Swing Zone + DCA"
+    
+
             )
 
         elif text.startswith("/wallet"):
-            token = text.split(" ")[1].upper() if len(text.split(" ")) > 1 else "?"
-            reply = (
-                f"📡 Wallet Insight untuk {token}:\n"
-                "- New wallets: +3.2%\n"
-                "- Whale: 0xabc masuk $1.2M\n"
-                "- Distribusi holder sehat ✅"
-            )
+    token = text.split(" ")[1].upper() if len(text.split(" ")) > 1 else "?"
+    reply = (
+        f"📡 Whale Insight untuk {token}:\n"
+        "- New wallets: +4.5%\n"
+        "- Whale activity: +$1.2M inflow\n"
+        "- Holder distribusi: Sehat ✅"
+    )
+
 
         elif text == "/airdropwatch":
             reply = (
