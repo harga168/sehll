@@ -3,157 +3,140 @@ import requests
 import os
 import threading
 from datetime import datetime
+import feedparser
 
 app = Flask(__name__)
 
+# === Konfigurasi
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")  # Chat ID grup
+CHAT_ID = os.environ.get("CHAT_ID")
 URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-# =====================
-# 🔁 AUTO PUSH SETIAP 6 JAM
-# =====================
+# === Fetch Harga dari CoinGecko
+def get_token_price(symbol="ethereum"):
+    try:
+        url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd&include_market_cap=true"
+        r = requests.get(url)
+        d = r.json()
+        usd = d[symbol]["usd"]
+        mc = d[symbol]["usd_market_cap"]
+        return f"💰 Harga {symbol.upper()}: ${usd:,} | MarketCap: ${int(mc):,}"
+    except:
+        return "⚠️ Gagal ambil harga dari CoinGecko"
+
+# === Fetch Unlock dari TokenUnlocks (public API)
+def get_unlocks():
+    try:
+        r = requests.get("https://api-v2.tokenunlocks.app/api/v1/token/nextUnlocks")
+        d = r.json()
+        message = "🔓 Token Unlock Terdekat:\n"
+        for i in range(3):
+            token = d["data"][i]
+            message += f"• {token['tokenName']} – {token['unlockAmount']} {token['symbol']}\n  Tanggal: {token['date'][:10]}\n"
+        return message
+    except:
+        return "⚠️ Gagal ambil data unlock."
+
+# === Fetch Crypto News dari CoinDesk
+def get_crypto_news():
+    try:
+        feed = feedparser.parse("https://www.coindesk.com/arc/outboundfeeds/rss/")
+        msg = "📰 Berita Crypto:\n"
+        for entry in feed.entries[:3]:
+            msg += f"• {entry.title}\n{entry.link}\n"
+        return msg
+    except:
+        return "⚠️ Gagal ambil berita crypto."
+
+# === Fetch Macro News dari IMF
+def get_macro_news():
+    try:
+        feed = feedparser.parse("https://www.imf.org/en/News/rss")
+        msg = "🌍 Berita Makro IMF:\n"
+        for entry in feed.entries[:3]:
+            msg += f"• {entry.title}\n{entry.link}\n"
+        return msg
+    except:
+        return "⚠️ Gagal ambil data makro."
+
+# === Auto-Push setiap 6 jam
 def push_insight():
     now = datetime.now().strftime("%d-%m-%Y %H:%M")
     message = (
         f"📊 [AUTO INSIGHT] ({now})\n"
-        "🔥 Top Token: $TIA, $OP, $MANTA\n"
-        "🔓 Unlock Alert: $ARB besok (5.1%)\n"
+        "🔥 TIA, ARB, MANTA trending\n"
+        "🔓 Unlock Aktif: ARB, LDO\n"
         "🧠 Narrative: Modular, Restaking, ZK\n"
-        "✅ Rekomendasi: Pantau zona beli swing"
+        "📈 Whale inflow: +$2M ($LDO)"
     )
     if CHAT_ID:
         requests.post(URL, json={"chat_id": CHAT_ID, "text": message})
-    threading.Timer(21600, push_insight).start()  # 6 jam = 21600 detik
+    threading.Timer(21600, push_insight).start()
 
 push_insight()
 
-# =====================
-# ✅ HOMEPAGE
-# =====================
+# === Home
 @app.route('/')
 def home():
-    return "✅ Bot Crypto kamu aktif & Auto Insight hidup!"
+    return "✅ BOT CRYPTO OTOMATIS AKTIF!"
 
-# =====================
-# ✅ TELEGRAM WEBHOOK
-# =====================
+# === Webhook Telegram
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.get_json()
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"]["text"].strip().lower()
-
         print("✅ Chat ID =>", chat_id)
 
         if text in ["/start", "/start@risetdatacrypto_bot"]:
             reply = (
-                "✅ Bot Crypto AKTIF!\n\n"
-                "📌 Command tersedia:\n"
-                "/insightdaily – Insight harian\n"
-                "/score ETH – Skor token\n"
-                "/wallet BTC – Whale tracker\n"
-                "/airdropwatch – Potensi airdrop\n"
-                "/unlockrisk – Token unlock\n"
-                "/btcsource – Toolkit Bitcoin\n"
-                "/news – Berita crypto\n"
-                "/macro – Data makro ekonomi\n"
-                "/vcnews – Narrative VC"
+                "✅ Bot Crypto 24/7 Aktif!\n\n"
+                "/insightdaily\n/score ETH\n/wallet BTC\n"
+                "/unlocktoday\n/news\n/macro\n/price ETH\n/btcsource\n/push"
             )
-
         elif text in ["/insightdaily", "/insightdaily@risetdatacrypto_bot"]:
-            reply = (
-                "📊 Insight Hari Ini:\n"
-                "🔥 TIA, OP, MANTA trending\n"
-                "🔓 Unlock ARB besok 5.1%\n"
-                "📈 Whale inflow: LDO +$1.2M\n"
-                "🧠 Narrative: Modular, AI, ZK"
-            )
-
+            reply = "📊 Insight Hari Ini:\n🔥 TIA, ARB, LDO trending\n🔓 Unlock ARB besok\n🧠 Modular narrative naik"
         elif text.startswith("/score"):
             token = text.split(" ")[1].upper() if len(text.split()) > 1 else "?"
-            reply = f"📈 Skor {token}:\nTA: 85 | FA: 84 | VC inflow: ✅"
-
+            reply = f"📈 Skor {token}:\nTA: 86 | FA: 84 | Narrative: Modular"
         elif text.startswith("/wallet"):
             token = text.split(" ")[1].upper() if len(text.split()) > 1 else "?"
-            reply = f"📡 Wallet {token}:\nWhale inflow +$1.5M | Holder naik +3.1%"
-
-        elif text in ["/airdropwatch", "/airdropwatch@risetdatacrypto_bot"]:
-            reply = (
-                "🎁 Airdrop Radar:\n"
-                "- zkSync\n"
-                "- LayerZero\n"
-                "- AltLayer\n"
-                "- EigenLayer"
-            )
-
-        elif text in ["/unlockrisk", "/unlockrisk@risetdatacrypto_bot"]:
-            reply = (
-                "🔓 Unlock Mingguan:\n"
-                "- ARB 5.1% besok\n"
-                "- MANTA 3.2% hari ini\n"
-                "- Saran: pantau inflow wallet"
-            )
-
+            reply = f"📡 Wallet {token}:\nWhale inflow +$1.5M\nNew holders naik +3%"
+        elif text in ["/unlocktoday", "/unlocktoday@risetdatacrypto_bot"]:
+            reply = get_unlocks()
+        elif text in ["/news", "/news@risetdatacrypto_bot"]:
+            reply = get_crypto_news()
+        elif text in ["/macro", "/macro@risetdatacrypto_bot"]:
+            reply = get_macro_news()
+        elif text.startswith("/price"):
+            token = text.split(" ")[1].lower() if len(text.split()) > 1 else "ethereum"
+            reply = get_token_price(symbol=token)
         elif text in ["/btcsource", "/btcsource@risetdatacrypto_bot"]:
             reply = (
-                "📘 BTC Tools:\n"
-                "- Explorer: blockchain.com\n"
-                "- Mempool: mempool.space\n"
-                "- Rainbow Chart: blockchaincenter.net\n"
-                "- S2F: 100trillionusd.github.io\n"
-                "- Halving: bitcoinblockhalf.com"
+                "📘 BTC Toolkit:\n"
+                "- mempool.space\n- blockchair.com\n"
+                "- rainbow chart\n- bitcoinblockhalf.com\n- bitbo.io"
             )
-
-        elif text in ["/news", "/news@risetdatacrypto_bot"]:
-            reply = (
-                "📰 Crypto News:\n"
-                "- CoinDesk: ETF inflow $500M\n"
-                "- TheBlock: Arbitrum DAO aktifkan staking\n"
-                "- Messari: Modular narrative dominasi"
-            )
-
-        elif text in ["/macro", "/macro@risetdatacrypto_bot"]:
-            reply = (
-                "🌍 Makro Global:\n"
-                "- CPI AS: 3.1%\n"
-                "- FOMC rate: 5.25%\n"
-                "- USD Index melemah – risk-on sentiment"
-            )
-
-        elif text in ["/vcnews", "/vcnews@risetdatacrypto_bot"]:
-            reply = (
-                "🧠 VC Thesis:\n"
-                "- a16z: Restaking, AppChain infra\n"
-                "- Delphi: ZK infra & RWA\n"
-                "- Pantera: LayerZero, AltLayer, Pendle"
-            )
+        elif text == "/push":
+            reply = "🚀 Manual Push:\n📊 Unlock ARB +5.1% besok\n🧠 Modular & RWA trending"
 
         else:
-            reply = "❓ Command tidak dikenali. Coba /start untuk daftar lengkap."
+            reply = "❓ Perintah tidak dikenali. Ketik /start untuk daftar lengkap."
 
         requests.post(URL, json={"chat_id": chat_id, "text": reply})
-
     return "ok", 200
 
-# =====================
-# ✅ MANUAL PUSH ENDPOINT
-# =====================
+# === Endpoint manual /push
 @app.route('/push', methods=['GET'])
 def autopush():
     message = (
-        "🚀 PUSH MANUAL:\n"
-        "📊 $TIA breakout MA200\n"
-        "🔓 MANTA unlock besok\n"
-        "🧠 AI & RWA narrative trending"
+        "🚀 PUSH:\n📊 $TIA breakout MA200\n🔓 MANTA unlock aktif\n🧠 RWA + Modular trending"
     )
     if CHAT_ID:
         requests.post(URL, json={"chat_id": CHAT_ID, "text": message})
-    return "Push terkirim ke Telegram!", 200
+    return "Push success", 200
 
-# =====================
-# ✅ RUN FLASK APP
-# =====================
+# === Run Flask app
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
