@@ -3,120 +3,61 @@ import requests
 import os
 import threading
 from datetime import datetime
-
-# Import modul data fetcher
-from fetch_unlocks import get_unlocks
-from fetch_news import get_crypto_news
-from fetch_macro import get_macro_news
-from fetch_coingecko import get_token_price
+from plot_price_chart import create_price_chart
+from plot_multi_price_chart import create_multi_price_chart
+from plot_tvl_chart import create_tvl_chart
+from plot_inflow_chart import create_inflow_chart
 
 app = Flask(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
-URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+URL_TEXT = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+URL_PHOTO = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
 
-# =====================
-# 🔁 AUTO PUSH setiap 6 jam
-# =====================
-def push_insight():
+def push_all_graphics():
     now = datetime.now().strftime("%d-%m-%Y %H:%M")
-    message = (
-        f"📊 [AUTO INSIGHT] ({now})\n"
-        "🔥 Trending: $TIA, $ARB, $LDO\n"
-        "🔓 Unlock Aktif: ARB, LDO\n"
-        "🧠 Narrative: Modular, Restaking, AI\n"
-        "📈 Whale inflow: +$2.3M ($LDO)"
+    text_msg = (
+        f"📊 [AUTO INSIGHT + GRAFIK] ({now})\n"
+        "🔥 Multi-token tracker, TVL, inflow terbaru\n"
+        "🧠 Powered by Telegram Bot Institusi"
     )
-    if CHAT_ID:
-        requests.post(URL, json={"chat_id": CHAT_ID, "text": message})
-    threading.Timer(21600, push_insight).start()
 
-push_insight()
+    if CHAT_ID:
+        requests.post(URL_TEXT, json={"chat_id": CHAT_ID, "text": text_msg})
+
+        chart1 = create_price_chart("TIA")
+        files1 = {'photo': ('chart1.png', chart1)}
+        data1 = {'chat_id': CHAT_ID, 'caption': '📈 Harga $TIA Mingguan'}
+        requests.post(URL_PHOTO, files=files1, data=data1)
+
+        chart2 = create_multi_price_chart()
+        files2 = {'photo': ('chart2.png', chart2)}
+        data2 = {'chat_id': CHAT_ID, 'caption': '📊 Harga Multi-Token'}
+        requests.post(URL_PHOTO, files=files2, data=data2)
+
+        chart3 = create_tvl_chart()
+        files3 = {'photo': ('chart3.png', chart3)}
+        data3 = {'chat_id': CHAT_ID, 'caption': '💰 TVL Protokol DeFi'}
+        requests.post(URL_PHOTO, files=files3, data=data3)
+
+        chart4 = create_inflow_chart()
+        files4 = {'photo': ('chart4.png', chart4)}
+        data4 = {'chat_id': CHAT_ID, 'caption': '🐋 Whale Inflow 24 Jam'}
+        requests.post(URL_PHOTO, files=files4, data=data4)
+
+    threading.Timer(21600, push_all_graphics).start()
+
+push_all_graphics()
 
 @app.route('/')
 def home():
-    return "✅ BOT CRYPTO OTOMATIS AKTIF!"
+    return "✅ BOT GRAFIK INSTITUSI AKTIF"
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    data = request.get_json()
-
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        text = data["message"]["text"].strip().lower()
-        print("✅ Chat ID =>", chat_id)
-
-        # === Command handler
-        if text in ["/start", "/start@risetdatacrypto_bot"]:
-            reply = (
-                "✅ Bot Crypto 24/7 AKTIF!\n\n"
-                "📌 Commands:\n"
-                "/insightdaily\n/score ETH\n/wallet BTC\n"
-                "/unlocktoday\n/news\n/macro\n/price ETH\n/btcsource\n/push"
-            )
-
-        elif text in ["/insightdaily", "/insightdaily@risetdatacrypto_bot"]:
-            reply = (
-                "📊 Insight Hari Ini:\n"
-                "🔥 $TIA, $ARB, $OP trending\n"
-                "🔓 Unlock ARB 5.1% besok\n"
-                "📈 Whale inflow: $LDO\n"
-                "🧠 Narrative: Modular + AI"
-            )
-
-        elif text.startswith("/score"):
-            token = text.split(" ")[1].upper() if len(text.split()) > 1 else "?"
-            reply = f"📈 Skor {token}:\nTA: 86 | FA: 84 | Narrative: Modular"
-
-        elif text.startswith("/wallet"):
-            token = text.split(" ")[1].upper() if len(text.split()) > 1 else "?"
-            reply = f"📡 Wallet {token}:\nWhale inflow +$1.5M\nNew holders naik +3%"
-
-        elif text in ["/unlocktoday", "/unlocktoday@risetdatacrypto_bot"]:
-            reply = get_unlocks()
-
-        elif text in ["/news", "/news@risetdatacrypto_bot"]:
-            reply = get_crypto_news()
-
-        elif text in ["/macro", "/macro@risetdatacrypto_bot"]:
-            reply = get_macro_news()
-
-        elif text.startswith("/price"):
-            token = text.split(" ")[1].lower() if len(text.split()) > 1 else "ethereum"
-            reply = get_token_price(symbol=token)
-
-        elif text in ["/btcsource", "/btcsource@risetdatacrypto_bot"]:
-            reply = (
-                "📘 BTC Resource:\n"
-                "- mempool.space\n- blockchair.com\n"
-                "- rainbow chart\n- halving: bitcoinblockhalf.com\n- bitbo.io"
-            )
-
-        elif text == "/push":
-            reply = (
-                "🚀 Push Manual:\n"
-                "📊 Token: $TIA breakout\n"
-                "🔓 Unlock aktif: ARB, OP\n"
-                "🧠 Trending: Modular + ZK"
-            )
-
-        else:
-            reply = "❓ Command tidak dikenali. Ketik /start untuk daftar lengkap."
-
-        requests.post(URL, json={"chat_id": chat_id, "text": reply})
-
-    return "ok", 200
-
-# === Endpoint manual ping
 @app.route('/push', methods=['GET'])
-def autopush():
-    message = (
-        "🚀 PUSH:\n📊 $TIA breakout\n🔓 MANTA unlock besok\n🧠 Narrative: Modular + RWA"
-    )
-    if CHAT_ID:
-        requests.post(URL, json={"chat_id": CHAT_ID, "text": message})
-    return "Push terkirim!", 200
+def manual_push():
+    push_all_graphics()
+    return "✅ Grafik & Insight dikirim!"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
